@@ -1,0 +1,232 @@
+<html>
+	<title> "Weather Forecast using Dark Sky APIs </title>
+
+	<head>
+		  <meta charset="utf-8">
+		  <meta name="viewport" content="width=device-width, initial-scale=1">
+		  <!--<script src="C:\Users\Disha\Documents\Disha\1SEM\CloudComputing\Python\js\jquery-3.3.1.min.js"></script-->
+		  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		  <script src = "http://malsup.github.io/jquery.blockUI.js"></script>
+		  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+		  <link rel="stylesheet" type = "text/css" href="\static\homework3.css"/>
+          <script>
+
+              $(document).ready(function(){
+
+                //Enabling only days from the present day to be selected for the forecast.
+                var d = new Date();
+                var curr_date = d.getDate();
+				var curr_month = d.getMonth() + 1; //Months are zero based
+				var curr_year = d.getFullYear();
+				var restrictDate = String(curr_month + "/" + curr_date + "/" + curr_year);
+                $("#datepicker")[0].setAttribute("min", new Date().toISOString().split('T')[0]);
+                //$("#datepicker")[0].setAttribute("min", new Date());
+
+               });
+
+              function generateGraph(){
+			 	var userDate = document.getElementById("datepicker").value.split("-").join(separator="");
+			 	$(".overlay").show();
+			 	var serviceUrl = "http://18.225.10.84:5000/thirdPartyWeatherForecasting/"+userDate;
+				document.getElementById("ForecastChart").style.border="thick solid #000000";
+				var plotData = [],minTemp = [], maxTemp =[],plotDataMin1=[],plotDataMax1=[],plotDataMin2=[],plotDataMax2=[];
+				$.ajax({
+					url:serviceUrl,
+					type:"GET",
+					method:"GET",
+					async:false,
+					dataType:"json",
+					contentType: "application/json;charset=UTF-8",
+					cache:false,
+					"crossDomain": true,
+					"headers": {
+				 		"accept": "application/json",
+             			"Access-Control-Allow-Origin":"*"
+        			},
+					timeout:30000,
+					beforeSend: function(xhr, settings){
+						if($("#ForecastChart div:first-child").length){
+							$("#ForecastChart div:first-child").block({
+								message:'<h1> Loading </h1>',
+								css: {border: '3px solid #a00'}
+							});
+						}
+					},
+					error : function( xhr, status, error){
+						console.log(error);
+					},
+					success : function( data, status, xhr ){
+						if(data.length){
+
+						  for( i=0; i < data.length; i++){
+						    //plotData.push(data[i]["DATE"].split("T")[0]);
+						    //minTemp.push(data[i]["TMIN"]);
+						    //maxTemp.push(data[i]["TMAX"]);
+						    plotDataMin1.push({x: new Date(data[i]["DATE"].split("T")[0]),y: data[i]["TMIN"]});
+						    plotDataMax1.push({x: new Date(data[i]["DATE"].split("T")[0]),y: data[i]["TMAX"]});
+						  }
+						  //plotGraph(plotDataMin,plotDataMax);
+
+						}
+					},
+					complete : function( xhr, status){
+						if($("#ForecastChart div:first-child").length){
+							$("#ForecastChart div:first-child").unblock();
+						}
+					}
+				});
+
+				$.ajax({
+					url:"http://18.225.10.84:5000/forecast/"+userDate,
+					type:"GET",
+					async:"false",
+					contentType: "application/json;charset=UTF-8",
+					cache:false,
+					"crossDomain": true,
+					"headers": {
+				 		"accept": "application/json",
+             			"Access-Control-Allow-Origin":"*"
+        			},
+        			timeout:3000,
+        			beforeSend:function(xhr,settings){
+
+        			},
+        			error:function(xhr,status,error){
+        				debugger;
+        			},
+        			success:function(data,status,xhr){
+        				debugger;
+						if(data.length){
+
+						  for( i=0; i < data.length-1; i++){
+						    //plotData.push(data[i]["DATE"].split("T")[0]);
+						    //minTemp.push(data[i]["TMIN"]);
+						    //maxTemp.push(data[i]["TMAX"]);
+						    plotDataMin2.push({x: new Date(data[i]["DATE"].split("T")[0]),y: data[i]["TMIN"]});
+						    plotDataMax2.push({x: new Date(data[i]["DATE"].split("T")[0]),y: data[i]["TMAX"]});
+						  }
+						  //plotGraph(plotDataMin,plotDataMax);
+
+						}
+        			},
+        			complete:function(xhr,status){
+						plotGraph(plotDataMin1,plotDataMax1,plotDataMin2,plotDataMax2);
+        			},
+				});
+
+
+			}
+
+          function plotGraph(plotDataMin1,plotDataMax1,plotDataMin2,plotDataMax2){
+               var graphChart = new CanvasJS.Chart("ForecastChart",{
+                backgroundColor: "#ecdad2",
+               		animationEnabled: true,
+               		theme:"light2",
+               		tooltip:{
+               			content:"{name}:{y}"
+               		},
+                    title : {
+                        text : "Temperatures across 7 days"
+                    },
+                    axisX : {
+                        title : "DATE",
+                        valueFormatString: "MMM-DD-YY",
+						crosshair: {
+							enabled: true,
+							snapToDataPoint: true
+						}
+                    },
+                    axisY : {
+                    	title : "Temperature",
+                    	valueFormatString: "#°F",
+                    	crosshair: {
+							enabled: true,
+							snapToDataPoint: true
+						}
+                    },
+                    legend : {
+                        cursor : "pointer",
+		                horizontalAlign: "center",
+		                dockInsidePlotArea: true,
+		                fontSize: 10,
+		                itemclick: toggleDataSeries
+                    },
+                    data:[
+                            {
+                                type:"line",
+                                toolTipContent:"DarkSky Max :{y}",
+                                name: "DarkSky max",
+                                showInLegend: true,
+                                dataPoints:plotDataMax1,
+                                markerType: "circle",
+                                lineColor:"red",
+                                click: toggleDataSeries
+                            },
+                            {
+                                type:"line",
+                                toolTipContent:"DarkSky Min :{y}",
+                                name: "DarkSky min",
+                                showInLegend: true,
+                                dataPoints:plotDataMin1,
+                                markerType: "circle",
+                                lineColor:"green",
+                                click: toggleDataSeries
+                            },
+                             {
+                             	type:"line",
+                             	toolTipContent:"Forecast Max :{y}",
+                             	name:"Forecast max",
+                                lineDashType: "dash",
+                                showInLegend: true,
+                                dataPoints:plotDataMax2,
+                                markerType: "square",
+                                lineColor:"red",
+                                click: toggleDataSeries
+                            },
+                            {
+                                type:"line",
+                                toolTipContent:"Forecast Min :{y}",
+								name:"Forecast min",
+                                lineDashType: "dash",
+                                showInLegend: true,
+                                dataPoints:plotDataMin2,
+                                markerType: "square",
+                                lineColor:"green",
+                                click: toggleDataSeries
+                            }
+                        ]
+               });
+               graphChart.render();
+          }
+
+          function toggleDataSeries( e ){
+            if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+                e.dataSeries.visible = false;
+            }
+            else
+            {
+                e.dataSeries.visible = true;
+            }
+          }
+
+    </script>
+    </head>
+    <body style="background-color: rgb(247, 244, 242);">
+		<div id = "homePage1" style="text-align:center; margin-top:5%;">
+			<div id ="homePage" style="display:inline-block">
+				 <Input id = "datepicker" style="font-family:fantasy" type = "date" required/>
+			 	 <Input id ="forecastDateSubmitBtn" type = "submit" onclick="generateGraph()" style="font-family:cursive" />
+			 </div>
+		</div>
+
+         <!-- <div class = "overlay">
+             <div id="loading-image"></div>
+             <img id = "BusyLoader" src="C:\Users\Disha\Documents\Disha\1SEM\CloudComputing\Python\static\ajax-loader.gif"/>
+         </div> -->
+		 <div class="container-fluid">
+         <div id="ForecastChart" style="height:50%; width: 70%;margin: auto;margin-top:10%;">
+         </div>
+		 </div>
+    </body>
+</html>
