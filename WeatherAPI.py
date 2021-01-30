@@ -226,6 +226,8 @@ class thirdPartyWeatherForecasting(Resource):
             return "Forecast retrieval failed! Contact Disha", 400
         #return jsonForecastArray,200 if len(jsonForecastArray) else "Forecast retrieval failed! Contact Disha",400
 
+# REVIEW NEEDED
+# TO-DO : CUSTOM CODE FOR LINEAR REGRESSION
 def forecastLinearRegression(date_id):
     with open('dailyweather.csv', "rt") as f:
         reader = csv.DictReader(f, delimiter=',')
