@@ -228,6 +228,7 @@ class thirdPartyWeatherForecasting(Resource):
 
 # REVIEW NEEDED
 # TO-DO : CUSTOM CODE FOR LINEAR REGRESSION
+# DISHA : CODE PENDING
 def forecastLinearRegression(date_id):
     with open('dailyweather.csv', "rt") as f:
         reader = csv.DictReader(f, delimiter=',')
