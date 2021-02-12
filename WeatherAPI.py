@@ -125,7 +125,9 @@ class HistoryOfAllDatesOfWeatherData(Resource):
              jsonDataOfDates.append({"DATE":str(val)})
         return jsonDataOfDates,200
 
-    @api.doc(responses={201: 'Data inserted/updated successfully'})
+    @api.doc(responses={201: 'Data inserted/updated successfully'},
+             params={'{\'DATE\':"<YYYMMDD>",\'TMAX\':"<value>",\'TMIN\':"<value>"}':"Use obj format"})
+
     @api.expect(postModel,validate=True)
     #@api.doc(params={"DATE": 'string', "TMAX": 'float', "TMIN": 'float'})
     def post(self):
@@ -144,8 +146,8 @@ class HistoryOfAllDatesOfWeatherData(Resource):
 @api.doc(True)
 @api.route('/historical/<date_id>', methods=["GET","DELETE"])
 class HistoricalDataOfDate(Resource):
-    @api.doc(responses={200: 'Data retrieved successfully'})
-    @api.doc(responses={404: 'Date not found!'})
+    @api.doc(responses={200: 'Data retrieved successfully'},params={'date_id':"YYYYMMDD format"})
+    @api.doc(responses={404: 'Date not found!'},params={'date_id':"YYYYMMDD format"})
     def get(self,date_id):
         historicalData = getWeatherData()
         for row in historicalData:
@@ -216,6 +218,8 @@ def index():
 
 @api.doc(True)
 @api.route('/thirdPartyWeatherForecasting/<date_id>',methods=["GET"])
+@api.doc(responses={200: 'Data retrieved successfully'},params={'date_id':"YYYYMMDD format"})
+@api.doc(responses={400: 'Data retrieval failure from DarkSky'})
 class thirdPartyWeatherForecasting(Resource):
     def get(self,date_id):
         jsonForecastArray = forecastFromDarkSky(date_id)
@@ -448,6 +452,8 @@ def forecastLinearRegression(date_id):
     return resultArray
 
 @api.route('/forecast/<date_id>',methods=["GET"])
+@api.doc(responses={200: 'Data retrieved successfully'},params={'date_id':"YYYYMMDD format"})
+@api.doc(responses={400: 'Data retrieval failure!'})
 class approximateWeatherForecasting(Resource):
     def get(self,date_id):
         approxForecastArray = forecastLinearRegression(date_id)
