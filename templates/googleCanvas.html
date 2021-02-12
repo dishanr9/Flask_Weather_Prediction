@@ -28,7 +28,7 @@
               function generateGraph(){
 			 	var userDate = document.getElementById("datepicker").value.split("-").join(separator="");
 			 	$(".overlay").show();
-			 	var serviceUrl = "http://127.0.0.1:8000/thirdPartyWeatherForecasting/"+userDate;
+			 	var serviceUrl = "http://127.0.0.1:5000/thirdPartyWeatherForecasting/"+userDate;
 				document.getElementById("ForecastChart").style.border="thick solid #000000";
 				var plotData = [],minTemp = [], maxTemp =[],plotDataMin1=[],plotDataMax1=[],plotDataMin2=[],plotDataMax2=[];
 				$.ajax({
